@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Document Chat</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="text-center">Document Chat</h1>
+
+    <!-- Upload Document Section -->
+    <div class="mt-4">
+        <h3>Upload Document</h3>
+        <form id="uploadForm">
+            <div class="mb-3">
+                <input type="file" id="fileInput" name="file" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Upload</button>
+        </form>
+
+        <!-- Table to Display Uploaded Documents -->
+        <div class="mt-4">
+            <h4>Uploaded Documents</h4>
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>Document Name</th>
+                    <th>Document ID</th>
+                </tr>
+                </thead>
+                <tbody id="documentsTableBody">
+                <!-- Rows will be added dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Chat Section -->
+    <div class="mt-5">
+        <h3>Chat with Document</h3>
+        <form id="chatForm">
+            <div class="mb-3">
+                <label for="documentIdInput" class="form-label">Document ID</label>
+                <input type="text" id="documentIdInput" class="form-control" placeholder="Enter Document ID" required>
+            </div>
+            <div class="mb-3">
+                <label for="questionInput" class="form-label">Your Question</label>
+                <input type="text" id="questionInput" class="form-control" placeholder="Ask a question" required>
+            </div>
+            <button type="submit" class="btn btn-success">Ask</button>
+        </form>
+        <div class="mt-4">
+            <h4>Chat History</h4>
+            <ul id="chatHistory" class="list-group">
+                <!-- Chat history items will be appended here -->
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Handle Document Upload
+    document.getElementById("uploadForm").addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const fileInput = document.getElementById("fileInput");
+        const formData = new FormData();
+        const fileName = fileInput.files[0].name; // Get file name for the table
+        formData.append("file", fileInput.files[0]);
+
+        try {
+            const response = await fetch("/api/upload", {
+                method: "POST",
+                body: formData,
+            });
+
+            const result = await response.text();
+            if (response.ok) {
+                const documentId = result.split("ID: ")[1];
+
+                // Add the new document to the table
+                const tableBody = document.getElementById("documentsTableBody");
+                const newRow = document.createElement("tr");
+
+                const nameCell = document.createElement("td");
+                nameCell.textContent = fileName;
+
+                const idCell = document.createElement("td");
+                idCell.textContent = documentId;
+
+                newRow.appendChild(nameCell);
+                newRow.appendChild(idCell);
+                tableBody.appendChild(newRow);
+
+                // Clear file input
+                fileInput.value = "";
+            } else {
+                alert("Error: " + result);
+            }
+        } catch (error) {
+            alert("Error uploading document: " + error.message);
+        }
+    });
+
+    // Handle Chat with Document
+    document.getElementById("chatForm").addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const documentId = document.getElementById("documentIdInput").value;
+        const question = document.getElementById("questionInput").value;
+
+        try {
+            const response = await fetch("/api/chat", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: new URLSearchParams({
+                    documentId: documentId,
+                    question: question,
+                }),
+            });
+
+            const answer = await response.text();
+            const chatHistory = document.getElementById("chatHistory");
+
+            if (response.ok) {
+                // Append question and answer to the chat history
+                const questionItem = document.createElement("li");
+                questionItem.className = "list-group-item list-group-item-info";
+                questionItem.textContent = "Q: " + question;
+
+                const answerItem = document.createElement("li");
+                answerItem.className = "list-group-item";
+                answerItem.textContent = "A: " + answer;
+
+                chatHistory.appendChild(questionItem);
+                chatHistory.appendChild(answerItem);
+            } else {
+                alert("Error: " + answer);
+            }
+        } catch (error) {
+            alert("Error communicating with document: " + error.message);
+        }
+    });
+</script>
+</body>
+</html>
