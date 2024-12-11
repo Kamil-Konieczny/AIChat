@@ -1,19 +1,12 @@
 package com.kamil.recruitment;
 
-import dev.langchain4j.data.document.*;
-import dev.langchain4j.data.embedding.*;
 import dev.langchain4j.data.segment.*;
 import dev.langchain4j.model.embedding.onnx.allminilml6v2.*;
-import dev.langchain4j.model.output.*;
-import dev.langchain4j.rag.content.retriever.*;
 import dev.langchain4j.store.embedding.*;
 import org.junit.jupiter.api.*;
 import org.mockito.*;
-import org.springframework.mock.web.*;
 import org.springframework.web.multipart.*;
 
-import java.io.*;
-import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;

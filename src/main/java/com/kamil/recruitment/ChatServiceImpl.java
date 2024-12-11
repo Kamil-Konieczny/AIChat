@@ -10,7 +10,6 @@ import dev.langchain4j.model.openai.*;
 import dev.langchain4j.rag.content.retriever.*;
 import dev.langchain4j.rag.query.*;
 import dev.langchain4j.store.embedding.EmbeddingStore;
-import dev.langchain4j.store.embedding.EmbeddingStoreIngestor;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,10 +23,11 @@ import static dev.langchain4j.store.embedding.filter.MetadataFilterBuilder.metad
 @Service
 public class ChatServiceImpl implements ChatService{
 
-    private final AllMiniLmL6V2EmbeddingModel embeddingModel;
-    private CustomerSupportAgent agent;
-    private final EmbeddingStore<TextSegment> embeddingStore;
-    private final Map<String, Document> documentStore;
+    private final AllMiniLmL6V2EmbeddingModel embeddingModel; // Model for generating embeddings.
+    private CustomerSupportAgent agent; // Handles answering user queries.
+    private final EmbeddingStore<TextSegment> embeddingStore; // Stores embeddings for efficient retrieval.
+
+    private final Map<String, Document> documentStore; // Stores uploaded documents in memory.
 
     @Autowired
     public ChatServiceImpl(EmbeddingStore<TextSegment> embeddingStore,
@@ -39,8 +39,15 @@ public class ChatServiceImpl implements ChatService{
         this.documentStore = new ConcurrentHashMap<>();
     }
 
+    /**
+     * Saves a document by splitting it into segments, generating embeddings, and storing them.
+     *
+     * @param file the uploaded document file
+     * @return documentId the ID of the document to query
+     * @throws IOException in case of error reading the file
+     */
     public String saveDocument(MultipartFile file) throws IOException {
-        if (file.isEmpty()) {
+        if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("File cannot be empty");
         }
 
@@ -60,7 +67,14 @@ public class ChatServiceImpl implements ChatService{
 
         return documentId;
     }
-
+    /**
+     * Queries a specific document and retrieves relevant content to answer the question.
+     *
+     * @param documentId the ID of the document to query
+     * @param question   the user's question
+     * @return the answer generated based on retrieved content
+     * @throws Exception if the document is not found or question is invalid
+     */
     public String queryDocument(String documentId, String question) throws Exception {
         if (question == null || question.trim().isEmpty()) {
             throw new IllegalArgumentException("Question cannot be null or empty");
@@ -88,5 +102,6 @@ public class ChatServiceImpl implements ChatService{
 
         return "No relevant content found for your query.";
     }
+
 }
 
