@@ -87,11 +87,11 @@ public class ChatServiceImpl implements ChatService{
 
         // Retrieve content related to the query
         ContentRetriever contentRetriever = EmbeddingStoreContentRetriever.builder()
-                .filter(metadataKey("documentId").isEqualTo(documentId))
                 .embeddingStore(embeddingStore)
                 .embeddingModel(embeddingModel)
+                .filter(metadataKey("documentId").isEqualTo(documentId))
                 .maxResults(1)
-                .minScore(0.6)
+                .minScore(0.5)
                 .build();
 
         var retrievedContent = contentRetriever.retrieve(Query.from(question));
